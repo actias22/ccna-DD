@@ -25,7 +25,7 @@ const quizData = [
         },
         "placeholders": [],
         "grouplimits": { "TCP": 3, "UDP": 3 }
-    }
+    },
     {
         "question": "Question 02",
         "text": "トランスポート層プロトコルの特性を左側から右側の対応するプロトコルにドラッグ アンド ドロップします。",
@@ -102,8 +102,5 @@ const quizData = [
         },
         "placeholders": [],
         "grouplimits": { "TCP": 2, "UDP": 2 }
-            }
     }
 ];
-
-
