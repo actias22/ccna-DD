@@ -339,4 +339,33 @@ button,
 .answer-container.drag-over {
   background-color: #e2e6ea;
   border-color: #adb5bd;
+
+}
+
+/* --- 問題文と画像のスタイル（画面上部に配置） --- */
+.question-details {
+  width: 100%;
+  max-width: 1200px; /* 下のD&Dエリアと幅を合わせる */
+  margin: 0 auto 20px auto; /* 中央寄せ＆下の余白 */
+  padding: 15px;
+  background-color: #ffffff;
+  border-left: 5px solid #007bff; /* 左側の青いアクセントライン */
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.question-details p {
+  margin: 0;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.question-image {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid #ccc;
+  display: block;
+  margin: 15px auto 0 auto; /* 画像は中央に配置 */
 }
