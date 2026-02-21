@@ -4,30 +4,23 @@ document.addEventListener("DOMContentLoaded", () => {
   let mode = urlParams.get("mode");
   const qParam = urlParams.get("q");
 
-  // If accessing exam.html, always set mode to "exam"
   if (window.location.pathname.includes("exam.html") || document.getElementById("exam-start-overlay")) {
     mode = "exam";
-    console.log("[DEBUG] Detected exam.html (or overlay), mode set to:", mode);
   }
-  console.log("[DEBUG] Initial mode:", mode);
 
   let questionOrder = [];
-  let currentStep = 0; // The current step in the sequence (0 to total-1)
+  let currentStep = 0; 
 
-  // Initialize Order
   if (mode === "exam") {
-    // Fresh start for exam: clear previous answers and order
     if (qParam === null) {
       localStorage.removeItem("quizAnswers");
       localStorage.removeItem("quizExamOrder");
     }
-
     const storedOrder = localStorage.getItem("quizExamOrder");
     if (storedOrder) {
       questionOrder = JSON.parse(storedOrder);
     } else {
       questionOrder = [...Array(quizData.length).keys()];
-      // Shuffle
       for (let i = questionOrder.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [questionOrder[i], questionOrder[j]] = [questionOrder[j], questionOrder[i]];
@@ -35,45 +28,37 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("quizExamOrder", JSON.stringify(questionOrder));
     }
   } else if (mode === "random") {
-    // 既存のランダム順序があれば取得、なければ新規作成
     const storedOrder = localStorage.getItem("quizRandomOrder");
     if (storedOrder) {
       questionOrder = JSON.parse(storedOrder);
     } else {
       questionOrder = [...Array(quizData.length).keys()];
-      // Shuffle
       for (let i = questionOrder.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [questionOrder[i], questionOrder[j]] = [questionOrder[j], questionOrder[i]];
       }
       localStorage.setItem("quizRandomOrder", JSON.stringify(questionOrder));
     }
-    // Limit to 10 questions for random mode
     questionOrder = questionOrder.slice(0, 10);
   } else if (mode === "retry") {
-    // Retry mode: Load from localStorage
     const retryOrder = localStorage.getItem("quizRetryOrder");
     if (retryOrder) {
       questionOrder = JSON.parse(retryOrder);
     } else {
-      // Fallback if empty
       questionOrder = [];
     }
-    // Limit to 10 questions for random mode
     questionOrder = questionOrder.slice(0, 10);
   } else {
-    // Normal mode: 0, 1, 2...
     questionOrder = [...Array(quizData.length).keys()];
   }
 
-  // Initialize Current Step
   if (qParam !== null && !isNaN(parseInt(qParam))) {
     const targetIndex = parseInt(qParam);
     const foundStep = questionOrder.indexOf(targetIndex);
     if (foundStep !== -1) {
       currentStep = foundStep;
     } else {
-      currentStep = 0; // Fallback
+      currentStep = 0;
     }
   } else {
     currentStep = 0;
@@ -87,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const nextButton = document.createElement("button");
   nextButton.textContent = "次の問題へ";
   nextButton.id = "next-button";
-  nextButton.classList.add("btn-next"); // Add class for styling
+  nextButton.classList.add("btn-next"); 
   nextButton.style.display = "none";
   nextButton.addEventListener("click", () => {
     goToNextQuestion();
@@ -101,16 +86,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function goToNextQuestion() {
-    // Check if answered
     let userAnswers = JSON.parse(localStorage.getItem("quizAnswers")) || [];
     const questionObj = quizData[currentQuestionIndex];
 
     if (document.getElementById("check-answer").style.display !== "none") {
-      // Mark as Incorrect (Empty Answer)
       const incorrectData = {
         question: questionObj.question,
         questionIndex: currentQuestionIndex,
-        userAnswer: [], // Empty
+        userAnswer: [], 
         correctAnswer: questionObj.answer
       };
       userAnswers.push(incorrectData);
@@ -119,7 +102,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     currentStep++;
     if (currentStep >= questionOrder.length) {
-      // Finish
       if (mode === "random") {
         localStorage.removeItem("quizRandomOrder");
       }
@@ -128,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (mode === "exam") {
         localStorage.removeItem("quizExamOrder");
-        localStorage.setItem("wasExamMode", "true"); // Flag for PDF export
+        localStorage.setItem("wasExamMode", "true"); 
       }
       window.location.href = "result.html";
       return;
@@ -149,13 +131,11 @@ document.addEventListener("DOMContentLoaded", () => {
       let message = "正解：\n";
 
       if (questionObj.grouplimits) {
-        // グループ形式の問題
         for (let groupName in correctAnswer) {
           const items = correctAnswer[groupName];
           message += `【${groupName}】\n${items.join("\n")}\n\n`;
         }
       } else {
-        // 通常の順序問題
         for (let i = 0; i < correctAnswer.length; i++) {
           message += `${questionObj.placeholders[i]} → ${correctAnswer[i]}\n`;
         }
@@ -172,6 +152,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const previousResultMessage = document.querySelector(".incorrect-message");
     if (previousResultMessage) previousResultMessage.remove();
 
+    // ▼追加：前回の問題文・画像があれば削除して画面をリセット
+    const previousDetails = document.querySelector(".question-details");
+    if (previousDetails) previousDetails.remove();
+
     quizContainer.innerHTML = "";
     nextButton.style.display = "none";
     checkButton.style.display = "block";
@@ -185,7 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (mode === "exam") {
         localStorage.removeItem("quizExamOrder");
-        localStorage.setItem("wasExamMode", "true"); // Flag for PDF export
+        localStorage.setItem("wasExamMode", "true"); 
       }
       window.location.href = "result.html";
       return;
@@ -193,18 +177,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const questionObj = quizData[currentQuestionIndex];
 
-    // ▼▼▼ 追加：問題文と画像の表示処理 ▼▼▼
+    // ▼変更：問題文と画像をquizContainerの「直前（上）」に挿入
     const questionDetailsContainer = document.createElement("div");
     questionDetailsContainer.classList.add("question-details");
 
-    // テキスト(text)データがあれば表示
     if (questionObj.text) {
       const textElem = document.createElement("p");
-      textElem.innerHTML = questionObj.text; // HTMLタグ（<br>など）を許可
+      textElem.innerHTML = questionObj.text; 
       questionDetailsContainer.appendChild(textElem);
     }
 
-    // 画像(image)データがあれば表示
     if (questionObj.image) {
       const imgElem = document.createElement("img");
       imgElem.src = questionObj.image;
@@ -213,13 +195,12 @@ document.addEventListener("DOMContentLoaded", () => {
       questionDetailsContainer.appendChild(imgElem);
     }
 
-    // テキストか画像のどちらかがあれば画面上部に追加
+    // quizContainerの中ではなく、quizContainerのすぐ上に配置する
     if (questionObj.text || questionObj.image) {
-      quizContainer.appendChild(questionDetailsContainer);
+      quizContainer.parentNode.insertBefore(questionDetailsContainer, quizContainer);
     }
-    // ▲▲▲ 追加ここまで ▲▲▲
+    // ▲変更ここまで▲
 
-    // Update Header with Progress
     let headerTitle;
     if (mode === "exam") {
       headerTitle = document.getElementById("exam-title");
@@ -258,7 +239,6 @@ document.addEventListener("DOMContentLoaded", () => {
         event.target.classList.add("dragging");
       });
 
-      // --- Touch Event Support ---
       choiceElem.addEventListener("touchstart", handleTouchStart, { passive: false });
       choiceElem.addEventListener("touchmove", handleTouchMove, { passive: false });
       choiceElem.addEventListener("touchend", handleTouchEnd, { passive: false });
@@ -270,7 +250,6 @@ document.addEventListener("DOMContentLoaded", () => {
       answerContainer.appendChild(choiceElem);
     });
 
-    // --- Enable Dropping Backward to Answer Container (Undo) ---
     answerContainer.addEventListener("dragover", (event) => {
       event.preventDefault();
       answerContainer.classList.add("drag-over");
@@ -325,7 +304,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (draggedElem) {
               const existingDraggable = dropZone.querySelector(".draggable");
               if (existingDraggable) {
-                // Swap: Move existing item back to answer container
                 answerContainer.appendChild(existingDraggable);
               }
               dropZone.appendChild(draggedElem);
@@ -367,7 +345,6 @@ document.addEventListener("DOMContentLoaded", () => {
           if (draggedElem) {
             const existingDraggable = dropZone.querySelector(".draggable");
             if (existingDraggable) {
-              // Swap: Move existing item back to answer container
               answerContainer.appendChild(existingDraggable);
             }
             dropZone.appendChild(draggedElem);
@@ -390,7 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const userAnswerData = {
       question: questionObj.question,
-      questionIndex: currentQuestionIndex, // Store index for retry mode
+      questionIndex: currentQuestionIndex, 
       userAnswer: [],
       correctAnswer: questionObj.answer
     };
@@ -479,7 +456,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-
   const resetButton = document.getElementById("reset-button");
 
   if (resetButton) {
@@ -553,11 +529,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Define global function for exam start
   window.startExam = function () {
-    console.log("[DEBUG] ====== startExam called ======");
-    console.log("[DEBUG] mode:", mode);
-    console.log("[DEBUG] currentStep:", currentStep);
     loadQuestion();
   };
 
@@ -565,7 +537,6 @@ document.addEventListener("DOMContentLoaded", () => {
     loadQuestion();
   }
 
-  // --- Helper Functions for Touch Events ---
   let initialX = null;
   let initialY = null;
   let originalPosition = {};
