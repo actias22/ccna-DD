@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       localStorage.setItem("quizRandomOrder", JSON.stringify(questionOrder));
     }
-    questionOrder = questionOrder.slice(0, 10);
+    // ★ここにあった「10問に制限する処理」を削除しました（全問出題になります）
   } else if (mode === "retry") {
     const retryOrder = localStorage.getItem("quizRetryOrder");
     if (retryOrder) {
@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       questionOrder = [];
     }
-    questionOrder = questionOrder.slice(0, 10);
+    // ★復習モードの制限も解除し、間違えた全問を出題するようにしています
   } else {
     questionOrder = [...Array(quizData.length).keys()];
   }
@@ -152,7 +152,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const previousResultMessage = document.querySelector(".incorrect-message");
     if (previousResultMessage) previousResultMessage.remove();
 
-    // ▼追加：前回の問題文・画像があれば削除して画面をリセット
     const previousDetails = document.querySelector(".question-details");
     if (previousDetails) previousDetails.remove();
 
@@ -177,7 +176,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const questionObj = quizData[currentQuestionIndex];
 
-    // ▼変更：問題文と画像をquizContainerの「直前（上）」に挿入
     const questionDetailsContainer = document.createElement("div");
     questionDetailsContainer.classList.add("question-details");
 
@@ -195,11 +193,9 @@ document.addEventListener("DOMContentLoaded", () => {
       questionDetailsContainer.appendChild(imgElem);
     }
 
-    // quizContainerの中ではなく、quizContainerのすぐ上に配置する
     if (questionObj.text || questionObj.image) {
       quizContainer.parentNode.insertBefore(questionDetailsContainer, quizContainer);
     }
-    // ▲変更ここまで▲
 
     let headerTitle;
     if (mode === "exam") {
