@@ -1,9 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // quizData is now loaded from quiz_data.js
-  // const quizData = [...]; 
-
-
-
   /* --- Random Mode & Initialization Logic --- */
   const urlParams = new URLSearchParams(window.location.search);
   let mode = urlParams.get("mode");
@@ -66,13 +61,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     // Limit to 10 questions for random mode
     questionOrder = questionOrder.slice(0, 10);
-  } else if (mode === "retry") {
-    const retryOrder = localStorage.getItem("quizRetryOrder");
-    if (retryOrder) {
-      questionOrder = JSON.parse(retryOrder);
-    } else {
-      questionOrder = [];
-    }
   } else {
     // Normal mode: 0, 1, 2...
     questionOrder = [...Array(quizData.length).keys()];
@@ -80,12 +68,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialize Current Step
   if (qParam !== null && !isNaN(parseInt(qParam))) {
-    // qParam is the direct index in quizData. We need to find which step corresponds to this index.
-    // However, usually qParam implies direct access. 
-    // If in random mode, direct access might break flow, but let's assume qParam overrides.
-    // For simplicity, if qParam is set, we might just jump to that step if found, or just force direct index.
-    // Let's rely on internal counter mostly. 
-    // If qParam is present, we try to match it.
     const targetIndex = parseInt(qParam);
     const foundStep = questionOrder.indexOf(targetIndex);
     if (foundStep !== -1) {
@@ -94,9 +76,6 @@ document.addEventListener("DOMContentLoaded", () => {
       currentStep = 0; // Fallback
     }
   } else {
-    // Try to restore last step from storage if we want? 
-    // Current app doesn't seem to persist "page number" across reloads strictly for index.html 
-    // except via URL. Let's start at 0.
     currentStep = 0;
   }
 
@@ -115,26 +94,17 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const nexttButton = document.getElementById("nextt-button");
-  nexttButton.addEventListener("click", () => {
-    goToNextQuestion();
-  });
+  if (nexttButton) {
+      nexttButton.addEventListener("click", () => {
+        goToNextQuestion();
+      });
+  }
 
   function goToNextQuestion() {
     // Check if answered
     let userAnswers = JSON.parse(localStorage.getItem("quizAnswers")) || [];
     const questionObj = quizData[currentQuestionIndex];
 
-    // Check if we already have an answer for this SPECIFIC question instance (by index comparison)
-    // Since userAnswers array might contain answers from previous order, we need to be careful.
-    // However, our logic pushes to userAnswers on "Check". 
-    // If we skip, we haven't pushed.
-    // BUT, if we go back and forward, we might have answered. 
-    // Checking if the Last entry matches current question is one way, but naive.
-    // Better: Check if we have an answer record for this questionIndex in the current session.
-    // For simplicity: If we are proceeding and haven't clicked Check, we assume incorrect.
-
-    // Actually, checking "Check Button" visibility is a decent proxy. 
-    // If Check Button is visible, it means we haven't answered yet.
     if (document.getElementById("check-answer").style.display !== "none") {
       // Mark as Incorrect (Empty Answer)
       const incorrectData = {
@@ -150,7 +120,6 @@ document.addEventListener("DOMContentLoaded", () => {
     currentStep++;
     if (currentStep >= questionOrder.length) {
       // Finish
-      // userAnswers is already updated above or previously
       if (mode === "random") {
         localStorage.removeItem("quizRandomOrder");
       }
@@ -196,7 +165,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-
   function loadQuestion() {
     const previousQuestionElem = document.querySelector("h2");
     if (previousQuestionElem) previousQuestionElem.remove();
@@ -225,34 +193,46 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const questionObj = quizData[currentQuestionIndex];
 
-    // const questionElem = document.createElement("h2");
-    // questionElem.textContent = questionObj.question;
-    // questionElem.style.display = "none"; 
+    // ▼▼▼ 追加：問題文と画像の表示処理 ▼▼▼
+    const questionDetailsContainer = document.createElement("div");
+    questionDetailsContainer.classList.add("question-details");
 
-    // if (mode === "exam") {
-    //   questionElem.style.display = "none";
-    // }
+    // テキスト(text)データがあれば表示
+    if (questionObj.text) {
+      const textElem = document.createElement("p");
+      textElem.innerHTML = questionObj.text; // HTMLタグ（<br>など）を許可
+      questionDetailsContainer.appendChild(textElem);
+    }
 
-    // quizContainer.appendChild(questionElem);
+    // 画像(image)データがあれば表示
+    if (questionObj.image) {
+      const imgElem = document.createElement("img");
+      imgElem.src = questionObj.image;
+      imgElem.alt = "問題の画像";
+      imgElem.classList.add("question-image");
+      questionDetailsContainer.appendChild(imgElem);
+    }
+
+    // テキストか画像のどちらかがあれば画面上部に追加
+    if (questionObj.text || questionObj.image) {
+      quizContainer.appendChild(questionDetailsContainer);
+    }
+    // ▲▲▲ 追加ここまで ▲▲▲
 
     // Update Header with Progress
     let headerTitle;
     if (mode === "exam") {
       headerTitle = document.getElementById("exam-title");
-      console.log("[DEBUG] Using ID selector for exam mode. Element:", headerTitle);
     } else {
       headerTitle = document.querySelector("h1");
     }
 
-    console.log("[DEBUG] Updating header. mode:", mode, "currentStep:", currentStep, "h1 element:", headerTitle);
     if (headerTitle) {
       const total = questionOrder.length || quizData.length;
       if (mode === "exam") {
         const newTitle = `CCNA 模擬試験 (${currentStep + 1}/${total})`;
-        console.log("[DEBUG] Setting exam header to:", newTitle);
         headerTitle.textContent = newTitle;
-        headerTitle.innerText = newTitle; // Try both methods
-        console.log("[DEBUG] Header text after update:", headerTitle.textContent);
+        headerTitle.innerText = newTitle; 
       } else if (mode === "random") {
         headerTitle.textContent = `ドラッグアンドドロップ練習 (${currentStep + 1} / ${total})`;
       } else if (mode === "retry") {
@@ -483,9 +463,8 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("quizAnswers", JSON.stringify(storedAnswers));
 
     if (mode === "exam") {
-      // In Exam Mode, go to next question immediately
       goToNextQuestion();
-      return; // Skip the feedback display logic below
+      return; 
     }
 
     resultMessage.textContent = isCorrect ? "正解" : "不正解";
@@ -494,7 +473,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     checkButton.style.display = "none";
     nextButton.style.display = "block";
-    // Only show answer button if it exists (not in exam mode)
     const showAnswerButton = document.getElementById("show-answer");
     if (showAnswerButton) {
       showAnswerButton.style.display = "inline-block";
@@ -508,7 +486,6 @@ document.addEventListener("DOMContentLoaded", () => {
     resetButton.addEventListener("click", () => {
       const questionObj = quizData[currentQuestionIndex];
 
-      // すべてのdrop-zoneからdraggable要素を削除
       document.querySelectorAll(".drop-zone").forEach(zone => {
         const draggable = zone.querySelector(".draggable");
         if (draggable) {
@@ -516,7 +493,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
 
-      // answer-containerを再描画
       const answerContainer = document.querySelector(".answer-container");
       answerContainer.innerHTML = "";
 
@@ -540,23 +516,20 @@ document.addEventListener("DOMContentLoaded", () => {
         answerContainer.appendChild(choiceElem);
       });
 
-      // 正誤メッセージを削除
       const allResults = document.querySelectorAll(".incorrect-message").forEach(msg => msg.remove());
 
       checkButton.style.display = "block";
       checkButton.disabled = false;
 
-      // 選択肢の色を戻す
       document.querySelectorAll(".draggable").forEach(elem => {
         elem.style.color = "";
       });
 
-      // 必要なら「次の問題」ボタンを隠す
       nextButton.style.display = "none";
 
-      if (allResults.length > 1) {
+      if (allResults && allResults.length > 1) {
         for (let i = 0; i < allResults.length - 1; i++) {
-          allResults[i].remove();  // 最後以外を削除
+          allResults[i].remove();
         }
       }
 
@@ -588,13 +561,8 @@ document.addEventListener("DOMContentLoaded", () => {
     loadQuestion();
   };
 
-  // For exam mode, don't load question until start button is clicked
-  console.log("[DEBUG] Checking initial load. mode:", mode);
   if (mode !== "exam") {
-    console.log("[DEBUG] Not exam mode, loading question immediately");
     loadQuestion();
-  } else {
-    console.log("[DEBUG] Exam mode detected, waiting for start button");
   }
 
   // --- Helper Functions for Touch Events ---
@@ -610,7 +578,6 @@ document.addEventListener("DOMContentLoaded", () => {
     initialY = touch.clientY;
     draggedElement = e.target;
 
-    // Remember original style to restore if dropped invalidly
     originalPosition = {
       parent: draggedElement.parentNode,
       nextSibling: draggedElement.nextSibling,
@@ -618,12 +585,11 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     draggedElement.classList.add("dragging");
-    // Make it float
     draggedElement.style.position = "fixed";
     draggedElement.style.zIndex = "1000";
-    draggedElement.style.width = "200px"; // Fixed width for dragging looks better
-    draggedElement.style.left = (touch.clientX - 100) + "px"; // Center horizontally
-    draggedElement.style.top = (touch.clientY - 25) + "px"; // Center vertically
+    draggedElement.style.width = "200px"; 
+    draggedElement.style.left = (touch.clientX - 100) + "px"; 
+    draggedElement.style.top = (touch.clientY - 25) + "px"; 
   }
 
   function handleTouchMove(e) {
@@ -638,32 +604,24 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!draggedElement) return;
     e.preventDefault();
 
-    draggedElement.style.display = "none"; // Hide to find element below
+    draggedElement.style.display = "none"; 
     const touch = e.changedTouches[0];
     const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-    draggedElement.style.display = "flex"; // Show again
+    draggedElement.style.display = "flex"; 
 
     const dropZone = elemBelow ? elemBelow.closest(".drop-zone") : null;
 
     if (dropZone && !dropZone.querySelector(".draggable")) {
-      // Valid Drop
       resetDragStyles(draggedElement);
       dropZone.appendChild(draggedElement);
       draggedElement.classList.remove("dragging");
     } else {
-      // Invalid Drop - Return to original place (or answer container if not already there)
       resetDragStyles(draggedElement);
-
-      // If it was already in a drop zone, maybe we want to keep it there? 
-      // Or if it was in answer-container. 
-      // Simplest behavior: Return to available pool (answer-container) or revert.
-      // Current implementation: Revert to original parent.
       if (originalPosition.parent) {
         originalPosition.parent.insertBefore(draggedElement, originalPosition.nextSibling);
       }
       draggedElement.classList.remove("dragging");
     }
-
     draggedElement = null;
   }
 
