@@ -251,7 +251,7 @@ const quizData = [
     {
         "question": "Question 11",
         "text": "学習したプレフィックスを左側から右側のサブネット マスクにドラッグ アンド ドロップします",
-        "image": "img/q11.png", // ★ここに画像ファイルのパスを指定します
+        "image": "img/question11.png", // ★ここに画像ファイルのパスを指定します
         "choice": [
             "172.16.3.192",
             "172.16.2.128",
@@ -276,6 +276,7 @@ const quizData = [
         "grouplimits": null
     }
 ];
+
 
 
 
