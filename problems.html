@@ -8,102 +8,112 @@
     body {
       font-family: sans-serif;
       padding: 20px;
-      background-color: #f9f9f9;
-    }
-
-    h2 {
-      text-align: center;
-      color: #333;
     }
 
     ul {
       list-style: none;
       padding: 0;
-      max-width: 600px;
-      margin: 0 auto;
     }
 
     li {
-      margin: 10px 0;
-      background-color: #fff;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      transition: box-shadow 0.2s;
-    }
-
-    li:hover {
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin: 10px 10px;
     }
 
     a {
-      display: block;
-      padding: 15px;
       text-decoration: none;
-      color: #007bff;
-      font-weight: bold;
+      color: blue;
     }
 
     a:hover {
-      background-color: #f1f8ff;
       text-decoration: underline;
     }
 
-    .btn-container {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
+    /* ホームボタンのスタイル */
     #home {
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
+      position: absolute;
+      top: 58px;
+      left: 200px;
+      padding: 8px 12px;
+      font-size: 14px;
+      border: 2px solid #333;
       border-radius: 5px;
-      background-color: #6c757d;
-      color: white;
+      background-color: white;
+      color: #333;
       cursor: pointer;
-      text-decoration: none;
     }
 
     #home:hover {
-      background-color: #5a6268;
+      background-color: #f0f0f0;
+    }
+
+    /* 最初の問題に戻るボタンのスタイル（インラインから移動・修正） */
+    #restart-btn {
+      position: absolute;
+      top: 58px; /* ホームボタンと高さを揃えました */
+      left: 40px;
+      padding: 8px 12px;
+      font-size: 14px;
+      border: 2px solid #333;
+      border-radius: 5px;
+      background-color: white;
+      color: #333;
+      cursor: pointer;
+    }
+
+    #restart-btn:hover {
+      background-color: #f0f0f0;
+    }
+
+    /* ボタンがタイトルに被らないよう余白を設定 */
+    h1 {
+      margin-top: 80px; 
     }
   </style>
 </head>
 
 <body>
 
-  <div class="btn-container">
-    <a href="index.html">
-      <button id="home">ホームに戻る</button>
-    </a>
-  </div>
+  <a href="index.html">
+    <button id="home">ホームに戻る</button>
+  </a>
 
-  <h2>問題一覧 (全 <span id="question-count">0</span> 問)</h2>
+  <button id="restart-btn">最初の問題に戻る</button>
+
+  <h1>問題一覧 (全 <span id="question-count">0</span> 問)</h1>
+  
   <ul id="problem-list"></ul>
 
   <script src="js/quiz_data.js"></script>
-  
+
   <script>
     document.addEventListener("DOMContentLoaded", () => {
+      // ② 読み込んだ quizData を使ってリストを自動作成する
       const list = document.getElementById("problem-list");
       const countSpan = document.getElementById("question-count");
-      
+
       // 問題の総数を表示
       if (typeof quizData !== 'undefined' && countSpan) {
         countSpan.textContent = quizData.length;
       }
 
-      // quiz_data.js のデータを使ってリンクを自動作成
+      // 自動で <li><a href="...">Question XX</a></li> を作成
       quizData.forEach((q, index) => {
         const li = document.createElement("li");
         const a = document.createElement("a");
         a.href = `quiz.html?q=${index}`;
-        a.textContent = q.question; // 「Question 01」などのタイトルが入る
+        a.textContent = q.question; 
         li.appendChild(a);
         list.appendChild(li);
       });
     });
+
+    // 最初の問題に戻るボタンの処理（そのまま維持）
+    document.getElementById("restart-btn").addEventListener("click", () => {
+      localStorage.removeItem("quizAnswers"); // 回答データを削除
+      window.location.href = "quiz.html";     // 最初の問題へ遷移
+    });
   </script>
+
 </body>
 
 </html>
