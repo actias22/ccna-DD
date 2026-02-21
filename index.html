@@ -1,0 +1,81 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>トップページ</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 50px;
+      background-color: #f9f9f9;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 30px;
+    }
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .menu a {
+      display: inline-block;
+      padding: 15px 30px;
+      font-size: 1.2em;
+      color: white;
+      background-color: #007BFF;
+      border-radius: 8px;
+      text-decoration: none;
+      width: 250px;
+    }
+
+    .menu a:hover {
+      background-color: #0056b3;
+    }
+
+    .mobile-warning {
+      display: none;
+      color: #d32f2f;
+      font-weight: bold;
+      font-size: 0.9em;
+      margin: 10px;
+      padding: 10px;
+      background-color: #ffebee;
+      border: 1px solid #ffcdd2;
+      border-radius: 4px;
+    }
+
+    /* Change breakpoint to be safe and use important */
+    @media (max-width: 768px) {
+      .mobile-warning {
+        display: block !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>CCNA D&D問題</h1>
+
+  <p class="mobile-warning">
+    ※スマートフォンでご利用の方は、画面を横にしていただくとスムーズに操作できます。
+  </p>
+
+  <div class="menu">
+    <a href="quiz.html">▶ ドラッグ＆ドロップ練習を始める</a>
+    <a href="quiz.html?mode=random">🔀 ランダムに練習する</a>
+    <a href="problems.html">📋 問題一覧</a>
+  </div>
+
+</body>
+
+</html>
